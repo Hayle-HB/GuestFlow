@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import one from "../../../assets/images/Hotel/kurifituhayk.webp";
 import two from "../../../assets/images/Hotel/kuriftuadarash.webp";
@@ -13,6 +13,7 @@ import {
 } from "react-icons/fa";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
   const [currentImage, setCurrentImage] = useState(0);
 
   const images = [one, two, three, four];
@@ -161,7 +162,10 @@ const HeroSection = () => {
                   </select>
                 </div>
 
-                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-md transition-colors duration-300">
+                <button
+                  onClick={() => navigate("/availability")}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-md transition-colors duration-300"
+                >
                   Check Availability
                 </button>
 
