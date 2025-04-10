@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="80" viewBox="0 0 200 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Decorative Frame -->
+  <path d="M20 10 H180 V70 H20 Z" stroke="#C4A962" stroke-width="0.5" fill="none"/>
+  <path d="M18 8 H182 V72 H18 Z" stroke="#C4A962" stroke-width="0.5" fill="none"/>
+  
+  <!-- Main 'K' Symbol -->
+  <path d="M40 20 L40 60 M40 40 L55 20 M40 40 L55 60" stroke="#C4A962" stroke-width="3" fill="none"/>
+  
+  <!-- Luxury Palm Symbol -->
+  <path d="M65 40 C65 40, 70 25, 75 40 C75 40, 80 25, 85 40" stroke="#C4A962" stroke-width="2" fill="none"/>
+  
+  <!-- Text 'KURIFTU' -->
+  <text x="95" y="45" font-family="Trajan Pro, serif" font-size="24" fill="#C4A962" letter-spacing="2">
+    KURIFTU
+  </text>
+  
+  <!-- Subtitle -->
+  <text x="100" y="60" font-family="Cormorant Garamond, serif" font-size="12" fill="#C4A962" letter-spacing="4">
+    RESORTS & SPA
+  </text>
+  
+  <!-- Decorative Lines -->
+  <line x1="30" y1="35" x2="30" y2="45" stroke="#C4A962" stroke-width="0.5"/>
+  <line x1="170" y1="35" x2="170" y2="45" stroke="#C4A962" stroke-width="0.5"/>
+  
+  <!-- Decorative Dots -->
+  <circle cx="30" cy="35" r="1" fill="#C4A962"/>
+  <circle cx="30" cy="45" r="1" fill="#C4A962"/>
+  <circle cx="170" cy="35" r="1" fill="#C4A962"/>
+  <circle cx="170" cy="45" r="1" fill="#C4A962"/>
+</svg>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { FaTimes, FaCheck } from "react-icons/fa";
@@ -7,9 +7,22 @@ import DateRoomSelection from "./components/DateRoomSelection";
 import GuestInformation from "./components/GuestInformation";
 import PaymentInformation from "./components/PaymentInformation";
 import BookingSteps from "./components/BookingSteps";
+import image1 from "../../../assets/images/Hotel/Room/double-bed-with-cushions.jpg";
+import image2 from "../../../assets/images/Hotel/Room/luxury-bedroom-suite-resort-high-rise-hotel-with-working-table.jpg";
+import image3 from "../../../assets/images/Hotel/Room/tidy-room-with-big-mirror.jpg";
 
 const Booking = () => {
   const navigate = useNavigate();
+  const [currentImage, setCurrentImage] = useState(0);
+  const images = [image1, image2, image3];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImage((prev) => (prev + 1) % images.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -192,98 +205,141 @@ const Booking = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-amber-50 py-12 relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d97706' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            backgroundSize: "60px 60px",
-          }}
-        ></div>
+    <div className="min-h-screen bg-white relative overflow-hidden">
+      {/* Hero Header Section with Image Slider */}
+      <div className="relative h-[60vh] overflow-hidden">
+        {/* Image Slider */}
+        {images.map((src, index) => (
+          <motion.div
+            key={src}
+            initial={{ opacity: 0, scale: 1.2 }}
+            animate={{
+              opacity: index === currentImage ? 1 : 0,
+              scale: index === currentImage ? 1 : 1.2,
+            }}
+            transition={{
+              opacity: { duration: 1.8, ease: "easeInOut" },
+              scale: { duration: 2.5, ease: "easeOut" },
+            }}
+            className="absolute inset-0"
+          >
+            <div className="absolute inset-0 bg-black/30 z-10 transition-opacity duration-1000" />
+            <img
+              src={src}
+              alt={`Luxury Room ${index + 1}`}
+              className="w-full h-full object-cover transform-gpu"
+            />
+          </motion.div>
+        ))}
+
+        {/* Content */}
+        <div className="absolute inset-0 z-20 flex items-center justify-center">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="text-5xl font-bold text-white sm:text-6xl mb-6"
+            >
+              Book Your Stay
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
+              className="text-2xl text-gray-100"
+            >
+              Experience luxury and comfort at Kuriftu Resorts & Spa
+            </motion.p>
+          </div>
+        </div>
       </div>
 
-      {/* Decorative Elements */}
-      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-amber-100 rounded-full filter blur-3xl opacity-30"></div>
-      <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-amber-100 rounded-full filter blur-3xl opacity-30"></div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-amber-900 sm:text-4xl">
-            Book Your Stay
-          </h1>
-          <p className="mt-3 text-lg text-amber-700">
-            Experience luxury and comfort at Kuriftu Resorts & Spa
-          </p>
+      {/* Main Content */}
+      <div className="relative">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+              backgroundSize: "60px 60px",
+            }}
+          ></div>
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center"
-          >
-            <FaTimes className="text-red-500 mr-3" />
-            <p className="text-red-700">{error}</p>
-          </motion.div>
-        )}
+        {/* Decorative Elements */}
+        <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gray-50 rounded-full filter blur-3xl opacity-30"></div>
+        <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-gray-50 rounded-full filter blur-3xl opacity-30"></div>
 
-        {/* Success Message */}
-        {success && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center"
-          >
-            <FaCheck className="text-green-500 mr-3" />
-            <p className="text-green-700">
-              Booking confirmed! Redirecting to confirmation page...
-            </p>
-          </motion.div>
-        )}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-12">
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Left Sidebar - Steps */}
+            <div className="lg:w-1/4">
+              <BookingSteps step={step} setStep={setStep} />
+            </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Left Sidebar - Steps */}
-          <div className="lg:w-1/4">
-            <BookingSteps step={step} setStep={setStep} />
+            {/* Main Content - Form */}
+            <div className="lg:w-3/4">
+              {step === 1 && (
+                <DateRoomSelection
+                  formData={formData}
+                  setFormData={setFormData}
+                  roomTypes={roomTypes}
+                  handleNext={handleNext}
+                />
+              )}
+
+              {step === 2 && (
+                <GuestInformation
+                  formData={formData}
+                  setFormData={setFormData}
+                  handleNext={handleNext}
+                  handlePrev={handlePrev}
+                />
+              )}
+
+              {step === 3 && (
+                <PaymentInformation
+                  formData={formData}
+                  setFormData={setFormData}
+                  handlePrev={handlePrev}
+                  handleSubmit={handleSubmit}
+                  loading={loading}
+                  calculateNights={calculateNights}
+                  calculatePrice={calculatePrice}
+                  formatDate={formatDate}
+                  roomTypes={roomTypes}
+                />
+              )}
+            </div>
           </div>
 
-          {/* Main Content - Form */}
-          <div className="lg:w-3/4">
-            {step === 1 && (
-              <DateRoomSelection
-                formData={formData}
-                setFormData={setFormData}
-                roomTypes={roomTypes}
-                handleNext={handleNext}
-              />
-            )}
+          {/* Error Message */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center"
+            >
+              <FaTimes className="text-red-500 mr-3" />
+              <p className="text-red-700">{error}</p>
+            </motion.div>
+          )}
 
-            {step === 2 && (
-              <GuestInformation
-                formData={formData}
-                setFormData={setFormData}
-                handleNext={handleNext}
-                handlePrev={handlePrev}
-              />
-            )}
-
-            {step === 3 && (
-              <PaymentInformation
-                formData={formData}
-                setFormData={setFormData}
-                handlePrev={handlePrev}
-                handleSubmit={handleSubmit}
-                loading={loading}
-                calculateNights={calculateNights}
-                calculatePrice={calculatePrice}
-                formatDate={formatDate}
-                roomTypes={roomTypes}
-              />
-            )}
-          </div>
+          {/* Success Message */}
+          {success && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center"
+            >
+              <FaCheck className="text-green-500 mr-3" />
+              <p className="text-green-700">
+                Booking confirmed! Redirecting to confirmation page...
+              </p>
+            </motion.div>
+          )}
         </div>
       </div>
     </div>

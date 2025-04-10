@@ -10,8 +10,8 @@ import {
 
 const BookingSteps = ({ step, setStep }) => {
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-amber-100">
-      <h2 className="text-xl font-semibold text-amber-900 mb-6">
+    <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-yellow-100">
+      <h2 className="text-xl font-semibold text-yellow-900 mb-6">
         Booking Journey
       </h2>
 
@@ -19,7 +19,7 @@ const BookingSteps = ({ step, setStep }) => {
         <motion.div
           className={`relative flex items-center p-4 rounded-lg cursor-pointer transition-all ${
             step >= 1
-              ? "bg-amber-50 border border-amber-300"
+              ? "bg-yellow-50 border border-yellow-300"
               : "bg-gray-50 border border-gray-200"
           }`}
           onClick={() => step > 1 && setStep(1)}
@@ -28,14 +28,14 @@ const BookingSteps = ({ step, setStep }) => {
         >
           <div
             className={`absolute left-0 top-0 bottom-0 w-1 rounded-tl-lg rounded-bl-lg ${
-              step >= 1 ? "bg-amber-500" : "bg-gray-300"
+              step >= 1 ? "bg-yellow-500" : "bg-gray-300"
             }`}
           ></div>
 
           <div
             className={`flex items-center justify-center w-10 h-10 rounded-full mr-4 ${
               step >= 1
-                ? "bg-amber-500 text-white"
+                ? "bg-yellow-500 text-white"
                 : "bg-gray-300 text-gray-600"
             }`}
           >
@@ -45,7 +45,7 @@ const BookingSteps = ({ step, setStep }) => {
           <div>
             <h3
               className={`font-medium ${
-                step >= 1 ? "text-amber-900" : "text-gray-600"
+                step >= 1 ? "text-yellow-900" : "text-gray-600"
               }`}
             >
               Select Dates
@@ -57,7 +57,7 @@ const BookingSteps = ({ step, setStep }) => {
 
           {step > 1 && (
             <div className="absolute right-2 top-2">
-              <FaCheck className="text-amber-500" />
+              <FaCheck className="text-yellow-500" />
             </div>
           )}
         </motion.div>
@@ -65,7 +65,7 @@ const BookingSteps = ({ step, setStep }) => {
         <motion.div
           className={`relative flex items-center p-4 rounded-lg cursor-pointer transition-all ${
             step >= 2
-              ? "bg-amber-50 border border-amber-300"
+              ? "bg-yellow-50 border border-yellow-300"
               : "bg-gray-50 border border-gray-200"
           }`}
           onClick={() => step > 2 && setStep(2)}
@@ -74,14 +74,14 @@ const BookingSteps = ({ step, setStep }) => {
         >
           <div
             className={`absolute left-0 top-0 bottom-0 w-1 rounded-tl-lg rounded-bl-lg ${
-              step >= 2 ? "bg-amber-500" : "bg-gray-300"
+              step >= 2 ? "bg-yellow-500" : "bg-gray-300"
             }`}
           ></div>
 
           <div
             className={`flex items-center justify-center w-10 h-10 rounded-full mr-4 ${
               step >= 2
-                ? "bg-amber-500 text-white"
+                ? "bg-yellow-500 text-white"
                 : "bg-gray-300 text-gray-600"
             }`}
           >
@@ -91,7 +91,7 @@ const BookingSteps = ({ step, setStep }) => {
           <div>
             <h3
               className={`font-medium ${
-                step >= 2 ? "text-amber-900" : "text-gray-600"
+                step >= 2 ? "text-yellow-900" : "text-gray-600"
               }`}
             >
               Guest Info
@@ -101,7 +101,7 @@ const BookingSteps = ({ step, setStep }) => {
 
           {step > 2 && (
             <div className="absolute right-2 top-2">
-              <FaCheck className="text-amber-500" />
+              <FaCheck className="text-yellow-500" />
             </div>
           )}
         </motion.div>
@@ -109,7 +109,7 @@ const BookingSteps = ({ step, setStep }) => {
         <motion.div
           className={`relative flex items-center p-4 rounded-lg cursor-pointer transition-all ${
             step >= 3
-              ? "bg-amber-50 border border-amber-300"
+              ? "bg-yellow-50 border border-yellow-300"
               : "bg-gray-50 border border-gray-200"
           }`}
           onClick={() => step > 3 && setStep(3)}
@@ -118,14 +118,14 @@ const BookingSteps = ({ step, setStep }) => {
         >
           <div
             className={`absolute left-0 top-0 bottom-0 w-1 rounded-tl-lg rounded-bl-lg ${
-              step >= 3 ? "bg-amber-500" : "bg-gray-300"
+              step >= 3 ? "bg-yellow-500" : "bg-gray-300"
             }`}
           ></div>
 
           <div
             className={`flex items-center justify-center w-10 h-10 rounded-full mr-4 ${
               step >= 3
-                ? "bg-amber-500 text-white"
+                ? "bg-yellow-500 text-white"
                 : "bg-gray-300 text-gray-600"
             }`}
           >
@@ -135,7 +135,7 @@ const BookingSteps = ({ step, setStep }) => {
           <div>
             <h3
               className={`font-medium ${
-                step >= 3 ? "text-amber-900" : "text-gray-600"
+                step >= 3 ? "text-yellow-900" : "text-gray-600"
               }`}
             >
               Payment
@@ -145,20 +145,20 @@ const BookingSteps = ({ step, setStep }) => {
         </motion.div>
       </div>
 
-      <div className="mt-8 p-4 bg-amber-50 rounded-lg border border-amber-200">
+      <div className="mt-8 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
         <div className="flex items-start">
-          <FaQuestionCircle className="text-amber-500 mt-1 mr-3" />
+          <FaQuestionCircle className="text-yellow-500 mt-1 mr-3" />
           <div>
-            <h3 className="font-medium text-amber-800 mb-2">Need Help?</h3>
-            <p className="text-sm text-amber-600 mb-3">
+            <h3 className="font-medium text-yellow-800 mb-2">Need Help?</h3>
+            <p className="text-sm text-yellow-600 mb-3">
               Our team is available 24/7 to assist you with your booking.
             </p>
             <div className="space-y-1">
-              <p className="text-sm text-amber-600 flex items-center">
+              <p className="text-sm text-yellow-600 flex items-center">
                 <span className="font-medium mr-2">Phone:</span>
                 +1 (555) 123-4567
               </p>
-              <p className="text-sm text-amber-600 flex items-center">
+              <p className="text-sm text-yellow-600 flex items-center">
                 <span className="font-medium mr-2">Email:</span>
                 support@kuriftu.com
               </p>
