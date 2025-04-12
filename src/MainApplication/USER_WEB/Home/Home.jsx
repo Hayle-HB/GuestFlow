@@ -3,6 +3,7 @@ import { ChevronRight, Gift } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import luxuryBedroom from "../../../assets/images/Hotel/kurifuadarash.webp";
 import VoiceChat from "./VoiceChat";
+import BellowHome from "./BellowHome";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -148,6 +149,9 @@ const Home = () => {
           </div>
         </div>
       </div>
+
+      {/* BellowHome Component */}
+      <BellowHome />
 
       {/* Special Offers */}
       <div className="bg-gray-50 dark:bg-gray-900 py-16">
