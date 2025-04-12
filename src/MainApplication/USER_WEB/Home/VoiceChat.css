@@ -1,0 +1,108 @@
+.status-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: #fbbf24;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.status-indicator.listening {
+  transform: scaleX(1);
+  background: #fbbf24;
+}
+
+.status-indicator.responding {
+  transform: scaleX(1);
+  background: #3b82f6;
+}
+
+.mic-icon {
+  width: 60px;
+  height: 60px;
+  transition: all 0.3s ease;
+}
+
+.mic-icon.active {
+  transform: scale(1.1);
+}
+
+.connection-status {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.connection-status.connected {
+  background: #10b981;
+  color: white;
+}
+
+.connection-status.disconnected {
+  background: #ef4444;
+  color: white;
+}
+
+.connection-status.connecting {
+  background: #f59e0b;
+  color: white;
+}
+
+.message-container {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.message {
+  margin: 8px 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  max-width: 80%;
+}
+
+.message.ai {
+  background: #3b82f6;
+  color: white;
+  margin-right: auto;
+}
+
+.message.user {
+  background: #fbbf24;
+  color: black;
+  margin-left: auto;
+}
+
+.speaking-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  margin-left: 8px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
