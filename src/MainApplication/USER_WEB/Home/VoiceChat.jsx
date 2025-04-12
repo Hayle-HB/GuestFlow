@@ -12,6 +12,7 @@ const VoiceChat = ({ isOpen, onClose, autoStart }) => {
   const [volume, setVolume] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [inputText, setInputText] = useState("");
 
   const socketRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -82,8 +83,13 @@ const VoiceChat = ({ isOpen, onClose, autoStart }) => {
   // Initialize audio context
   useEffect(() => {
     if (isOpen) {
-      audioContextRef.current = new (window.AudioContext ||
-        window.webkitAudioContext)();
+      try {
+        audioContextRef.current = new (window.AudioContext ||
+          window.webkitAudioContext)();
+        console.log("Audio context initialized");
+      } catch (error) {
+        console.error("Error initializing audio context:", error);
+      }
     }
   }, [isOpen]);
 
@@ -150,9 +156,17 @@ const VoiceChat = ({ isOpen, onClose, autoStart }) => {
   }, []);
 
   const playAudio = async (base64Audio) => {
-    if (!base64Audio) return;
+    if (!base64Audio || !audioContextRef.current) {
+      console.error("No audio data or audio context not initialized");
+      return;
+    }
 
     try {
+      // Resume audio context if it's suspended
+      if (audioContextRef.current.state === "suspended") {
+        await audioContextRef.current.resume();
+      }
+
       const audioContext = audioContextRef.current;
       const binaryString = atob(base64Audio);
       const bytes = new Uint8Array(binaryString.length);
@@ -163,15 +177,25 @@ const VoiceChat = ({ isOpen, onClose, autoStart }) => {
       const audioBuffer = await audioContext.decodeAudioData(bytes.buffer);
       const source = audioContext.createBufferSource();
       source.buffer = audioBuffer;
-      source.connect(audioContext.destination);
+
+      // Create a gain node for volume control
+      const gainNode = audioContext.createGain();
+      gainNode.gain.value = 1.0; // Set volume to 100%
+
+      // Connect nodes
+      source.connect(gainNode);
+      gainNode.connect(audioContext.destination);
 
       setIsSpeaking(true);
       if (statusIndicatorRef.current) {
         statusIndicatorRef.current.classList.add("responding");
       }
+
       source.start();
+      console.log("Audio playback started");
 
       source.onended = () => {
+        console.log("Audio playback ended");
         setIsSpeaking(false);
         if (statusIndicatorRef.current) {
           statusIndicatorRef.current.classList.remove("responding");
@@ -179,6 +203,10 @@ const VoiceChat = ({ isOpen, onClose, autoStart }) => {
       };
     } catch (error) {
       console.error("Error playing audio:", error);
+      setIsSpeaking(false);
+      if (statusIndicatorRef.current) {
+        statusIndicatorRef.current.classList.remove("responding");
+      }
     }
   };
 
@@ -201,6 +229,23 @@ const VoiceChat = ({ isOpen, onClose, autoStart }) => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const handleInputSubmit = (e) => {
+    e.preventDefault();
+    if (inputText.trim() && socketRef.current) {
+      // Add user message to chat
+      setMessages((prev) => [...prev, { type: "user", content: inputText }]);
+
+      // Send text to server
+      socketRef.current.emit("voice_end", {
+        transcript: inputText,
+        isTextInput: true,
+      });
+
+      // Clear input
+      setInputText("");
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -286,6 +331,27 @@ const VoiceChat = ({ isOpen, onClose, autoStart }) => {
             </div>
           </div>
         </div>
+
+        <form
+          onSubmit={handleInputSubmit}
+          className="p-4 border-t border-gray-700"
+        >
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder="Type your message..."
+              className="flex-1 bg-gray-800 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+            <button
+              type="submit"
+              className="bg-amber-500 text-white px-4 py-2 rounded-lg hover:bg-amber-600 transition-colors"
+            >
+              Send
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

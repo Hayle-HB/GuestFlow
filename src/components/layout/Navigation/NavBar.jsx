@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FaBars,
@@ -16,22 +16,38 @@ import {
   FaHeadset,
   FaArrowRight,
   FaGlobe,
+  FaUser,
 } from "react-icons/fa";
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
-  // Handle scroll effect
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("userRole");
+    setIsAuthenticated(!!token);
+    setUserRole(role);
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
+    setIsAuthenticated(false);
+    setUserRole(null);
+    navigate("/");
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -269,17 +285,56 @@ const NavBar = () => {
             >
               Book Now
             </Link>
-            <Link
-              to="/contact"
-              className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm transition-colors ${
-                isScrolled
-                  ? "text-yellow-600 bg-white border-yellow-600 hover:bg-yellow-50"
-                  : "text-white bg-yellow-600 hover:bg-yellow-700"
-              }`}
-            >
-              Contact Us
-              <FaArrowRight className="ml-2 h-3 w-3" />
-            </Link>
+            {isAuthenticated ? (
+              <div className="relative group">
+                <button
+                  className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm transition-colors ${
+                    isScrolled
+                      ? "text-yellow-600 bg-white border-yellow-600 hover:bg-yellow-50"
+                      : "text-white bg-yellow-600 hover:bg-yellow-700"
+                  }`}
+                >
+                  <FaUser className="mr-2" />
+                  {userRole === "admin" ? "Admin" : "My Account"}
+                </button>
+                <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                  <div className="py-1">
+                    {userRole === "admin" && (
+                      <Link
+                        to="/admin"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-yellow-50"
+                      >
+                        Admin Dashboard
+                      </Link>
+                    )}
+                    <Link
+                      to="/user"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-yellow-50"
+                    >
+                      My Dashboard
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-yellow-50"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm transition-colors ${
+                  isScrolled
+                    ? "text-yellow-600 bg-white border-yellow-600 hover:bg-yellow-50"
+                    : "text-white bg-yellow-600 hover:bg-yellow-700"
+                }`}
+              >
+                Login / Sign Up
+                <FaArrowRight className="ml-2 h-3 w-3" />
+              </Link>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -411,14 +466,37 @@ const NavBar = () => {
                   >
                     Book Now
                   </Link>
-                  <Link
-                    to="/contact"
-                    className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-yellow-600 bg-white border-yellow-600 hover:bg-yellow-50"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Contact Us
-                    <FaArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
+                  {isAuthenticated ? (
+                    <>
+                      <Link
+                        to={userRole === "admin" ? "/admin" : "/user"}
+                        className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-yellow-600 bg-white border-yellow-600 hover:bg-yellow-50"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        {userRole === "admin"
+                          ? "Admin Dashboard"
+                          : "My Dashboard"}
+                      </Link>
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          setIsOpen(false);
+                        }}
+                        className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-red-600 bg-white border-red-600 hover:bg-red-50"
+                      >
+                        Logout
+                      </button>
+                    </>
+                  ) : (
+                    <Link
+                      to="/login"
+                      className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-yellow-600 bg-white border-yellow-600 hover:bg-yellow-50"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Login / Sign Up
+                      <FaArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>

@@ -1,10 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import SideBar from "./Pages/SideBar/SideBar";
 import UserFeedBack from "./Pages/UserFeedBack/UserFeedBack";
 import Maintenance from "./Pages/UserFeedBack/components/Maintenance/Maintenance";
 
 const AdminWeb = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userRole = localStorage.getItem("userRole");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    if (userRole !== "admin") {
+      navigate("/user");
+      return;
+    }
+  }, [navigate]);
 
   const handleCategorySelect = (category) => {
     setSelectedCategory(category);
