@@ -16,7 +16,7 @@ import {
   FaHistory,
 } from "react-icons/fa";
 
-const SideBar = () => {
+const SideBar = ({ onLogout }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [activeMenu, setActiveMenu] = useState("dashboard");
   const navigate = useNavigate();
@@ -74,6 +74,10 @@ const SideBar = () => {
   const handleMenuClick = (key) => {
     setActiveMenu(key);
     navigate(`/admin/${key}`);
+  };
+
+  const handleLogout = () => {
+    onLogout();
   };
 
   return (
@@ -189,12 +193,15 @@ const SideBar = () => {
           </div>
 
           {/* Logout */}
-          <div className="flex items-center space-x-3 cursor-pointer group">
-            <div className="w-8 h-8 flex items-center justify-center text-gray-400 group-hover:text-[#FFD700] transition-all duration-200 transform group-hover:scale-110">
+          <div
+            onClick={handleLogout}
+            className="flex items-center space-x-3 cursor-pointer group"
+          >
+            <div className="w-8 h-8 flex items-center justify-center text-gray-400 group-hover:text-red-500 transition-all duration-200 transform group-hover:scale-110">
               <FaSignOutAlt className="w-5 h-5" />
             </div>
             {!collapsed && (
-              <span className="text-sm text-gray-400 group-hover:text-[#FFD700] font-medium">
+              <span className="text-sm text-gray-400 group-hover:text-red-500 font-medium">
                 Logout
               </span>
             )}

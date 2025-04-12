@@ -7,7 +7,7 @@ import {
   FaApple,
   FaEye,
   FaEyeSlash,
-  FaEnvelope,
+  FaUser,
   FaLock,
   FaCheck,
   FaTimes,
@@ -20,9 +20,10 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
-    email: "",
+    username: "",
     password: "",
     rememberMe: false,
+    role: "user",
   });
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [isLocked, setIsLocked] = useState(false);
@@ -30,9 +31,13 @@ const LoginPage = () => {
 
   // Check for saved credentials on component mount
   useEffect(() => {
-    const savedEmail = localStorage.getItem("rememberedEmail");
-    if (savedEmail) {
-      setFormData((prev) => ({ ...prev, email: savedEmail, rememberMe: true }));
+    const savedUsername = localStorage.getItem("rememberedUsername");
+    if (savedUsername) {
+      setFormData((prev) => ({
+        ...prev,
+        username: savedUsername,
+        rememberMe: true,
+      }));
     }
   }, []);
 
@@ -54,11 +59,9 @@ const LoginPage = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    // Email validation
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
+    // Username validation
+    if (!formData.username) {
+      newErrors.username = "Username is required";
     }
 
     // Password validation
@@ -81,59 +84,40 @@ const LoginPage = () => {
 
     setIsLoading(true);
     setErrors({});
-    let errorMessage = null;
 
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
-
-      const delayPromise = new Promise((resolve) => setTimeout(resolve, 4000));
-
-      const response = await Promise.race([
-        axios.post("/api/auth/login", formData, {
-          signal: controller.signal,
-        }),
-        delayPromise.then(() => ({ data: null })),
-      ]);
-
-      clearTimeout(timeoutId);
-
-      if (response.data) {
-        // Handle successful login
-        if (formData.rememberMe) {
-          localStorage.setItem("rememberedEmail", formData.email);
-        } else {
-          localStorage.removeItem("rememberedEmail");
-        }
-        navigate("/dashboard");
-      }
+      // Create a local session with the selected role
+      const dummyUser = {
+        token: "dummy-token-" + Date.now(),
+        user: {
+          role: formData.role,
+          username: formData.username,
+        },
+      };
+      handleSuccessfulLogin(dummyUser);
     } catch (error) {
-      if (error.name === "AbortError") {
-        errorMessage = "Request timed out. Please try again later.";
-      } else if (error.response) {
-        errorMessage =
-          error.response.data.message ||
-          "Login failed. Please check your credentials.";
-        // Handle failed attempts
-        const newFailedAttempts = failedAttempts + 1;
-        setFailedAttempts(newFailedAttempts);
-
-        if (newFailedAttempts >= 3) {
-          const lockoutTime = 5 * 60 * 1000; // 5 minutes
-          setIsLocked(true);
-          setLockoutEndTime(Date.now() + lockoutTime);
-          errorMessage = `Too many failed attempts. Please try again in 5 minutes.`;
-        }
-      } else {
-        errorMessage = "An error occurred. Please try again later.";
-      }
+      console.error("Error creating session:", error);
     } finally {
-      await new Promise((resolve) => setTimeout(resolve, 4000));
       setIsLoading(false);
-      if (errorMessage) {
-        setErrors({ submit: errorMessage });
-      }
     }
+  };
+
+  const handleSuccessfulLogin = (data) => {
+    // Store credentials if remember me is checked
+    if (formData.rememberMe) {
+      localStorage.setItem("rememberedUsername", formData.username);
+    } else {
+      localStorage.removeItem("rememberedUsername");
+    }
+
+    // Store session data
+    localStorage.setItem("token", data.token || "dummy-token");
+    localStorage.setItem("userRole", formData.role);
+    localStorage.setItem("username", formData.username);
+
+    // Redirect based on role
+    const redirectPath = formData.role === "admin" ? "/admin" : "/user";
+    navigate(redirectPath);
   };
 
   const handleChange = (e) => {
@@ -207,38 +191,38 @@ const LoginPage = () => {
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div>
             <label
-              htmlFor="email"
+              htmlFor="username"
               className="block text-sm font-medium text-gray-200"
             >
-              Email address
+              Username
             </label>
             <div className="mt-1 relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaEnvelope className="h-5 w-5 text-yellow-400" />
+                <FaUser className="h-5 w-5 text-yellow-400" />
               </div>
               <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                value={formData.email}
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                value={formData.username}
                 onChange={handleChange}
                 disabled={isLocked}
                 className={`appearance-none block w-full pl-10 px-3 py-3 border ${
-                  errors.email ? "border-red-500" : "border-gray-700"
+                  errors.username ? "border-red-500" : "border-gray-700"
                 } bg-gray-800/50 rounded-lg shadow-sm placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent sm:text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
-                placeholder="Enter your email"
+                placeholder="Enter your username"
               />
             </div>
             <AnimatePresence>
-              {errors.email && (
+              {errors.username && (
                 <motion.p
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   className="mt-1 text-sm text-red-400"
                 >
-                  {errors.email}
+                  {errors.username}
                 </motion.p>
               )}
             </AnimatePresence>
@@ -293,6 +277,34 @@ const LoginPage = () => {
                 </motion.p>
               )}
             </AnimatePresence>
+          </div>
+
+          {/* Role Selection */}
+          <div className="flex items-center justify-center space-x-4">
+            <button
+              type="button"
+              onClick={() => setFormData((prev) => ({ ...prev, role: "user" }))}
+              className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                formData.role === "user"
+                  ? "bg-yellow-500 text-white"
+                  : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+              }`}
+            >
+              User
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setFormData((prev) => ({ ...prev, role: "admin" }))
+              }
+              className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                formData.role === "admin"
+                  ? "bg-yellow-500 text-white"
+                  : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+              }`}
+            >
+              Admin
+            </button>
           </div>
 
           <div className="flex items-center justify-between">

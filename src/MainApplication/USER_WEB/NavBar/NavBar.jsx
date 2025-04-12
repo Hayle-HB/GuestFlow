@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleTheme } from "../../../feature/theme/themeSlice.js";
 import {
@@ -11,25 +11,25 @@ import {
   Bell,
   Gift,
   Hotel,
-  Calendar,
   Star,
   MessageSquare,
-  MessageCircle,
-  Heart,
   Map,
+  LogOut,
 } from "lucide-react";
 
-const NavBar = () => {
+const NavBar = ({ onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const dispatch = useDispatch();
   const theme = useSelector((state) => state.theme.mode);
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  const navigate = useNavigate();
 
   const handleThemeToggle = () => {
     dispatch(toggleTheme());
+  };
+
+  const handleLogout = () => {
+    onLogout();
+    setIsMenuOpen(false);
   };
 
   return (
@@ -96,17 +96,18 @@ const NavBar = () => {
               <Bell className="h-5 w-5 text-gray-600 dark:text-gray-300" />
             </button>
 
-            <Link
-              to="/user/profile"
-              className="flex items-center space-x-2 px-4 py-2 rounded-full bg-amber-600 text-white hover:bg-amber-700 transition-colors"
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center space-x-2 px-4 py-2 rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors"
             >
-              <User className="h-5 w-5" />
-              <span className="hidden sm:inline">Profile</span>
-            </Link>
+              <LogOut className="h-5 w-5" />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
 
             {/* Mobile menu button */}
             <button
-              onClick={toggleMenu}
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="md:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               {isMenuOpen ? (
@@ -126,7 +127,7 @@ const NavBar = () => {
             <Link
               to="/user/give-feedback"
               className="flex items-center space-x-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
-              onClick={toggleMenu}
+              onClick={() => setIsMenuOpen(false)}
             >
               <MessageSquare className="h-5 w-5" />
               <span>Give Feedback</span>
@@ -134,7 +135,7 @@ const NavBar = () => {
             <Link
               to="/user/get-bonus"
               className="flex items-center space-x-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
-              onClick={toggleMenu}
+              onClick={() => setIsMenuOpen(false)}
             >
               <Gift className="h-5 w-5" />
               <span>Get Bonus</span>
@@ -142,7 +143,7 @@ const NavBar = () => {
             <Link
               to="/user/meet-guide"
               className="flex items-center space-x-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
-              onClick={toggleMenu}
+              onClick={() => setIsMenuOpen(false)}
             >
               <Map className="h-5 w-5" />
               <span>Meet Guide</span>
@@ -150,11 +151,18 @@ const NavBar = () => {
             <Link
               to="/user/loyalty"
               className="flex items-center space-x-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
-              onClick={toggleMenu}
+              onClick={() => setIsMenuOpen(false)}
             >
               <Star className="h-5 w-5" />
               <span>Loyalty</span>
             </Link>
+            <button
+              onClick={handleLogout}
+              className="flex items-center space-x-3 px-3 py-2 text-red-600 hover:bg-gray-100 dark:hover:bg-gray-800 w-full"
+            >
+              <LogOut className="h-5 w-5" />
+              <span>Logout</span>
+            </button>
           </div>
         </div>
       )}

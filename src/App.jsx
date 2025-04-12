@@ -12,20 +12,22 @@ import LoginPage from "./pages/auth/Login/LoginPage";
 import Booking from "./pages/LandingPage/Booking/Booking";
 import Availability from "./pages/LandingPage/Booking/components/Availablity";
 import UserWeb from "./MainApplication/USER_WEB/UserWeb";
-import AdminWeb from "./MainApplication/ADMIN_WEB/AdminWeb";
+import AdminWeb from "./MainApplication/ADMIN_WEB/adminWeb";
 
 const ProtectedRoute = ({ children, isAdmin = false }) => {
   const token = localStorage.getItem("token");
   const userRole = localStorage.getItem("userRole");
-  const location = useLocation();
 
   if (!token) {
-    localStorage.setItem("redirectAfterLogin", location.pathname);
     return <Navigate to="/login" replace />;
   }
 
   if (isAdmin && userRole !== "admin") {
     return <Navigate to="/user" replace />;
+  }
+
+  if (!isAdmin && userRole === "admin") {
+    return <Navigate to="/admin" replace />;
   }
 
   return children;

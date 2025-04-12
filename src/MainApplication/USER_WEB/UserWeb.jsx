@@ -26,9 +26,20 @@ const UserWeb = () => {
     }
   }, [navigate]);
 
+  const handleLogout = () => {
+    // Clear all auth-related data
+    localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("username");
+    localStorage.removeItem("rememberedUsername");
+
+    // Redirect to login page
+    navigate("/login");
+  };
+
   return (
     <div className="relative min-h-screen bg-gray-50">
-      <NavBar />
+      <NavBar onLogout={handleLogout} />
       <Routes>
         <Route
           path="/"
