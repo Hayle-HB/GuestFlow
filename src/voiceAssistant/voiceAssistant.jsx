@@ -12,9 +12,12 @@ import {
   FaUser,
   FaPhone,
   FaEnvelope,
+  FaCheck,
 } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const VoiceAssistant = ({ position = "bottom" }) => {
+  const navigate = useNavigate();
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [response, setResponse] = useState("");
@@ -29,27 +32,285 @@ const VoiceAssistant = ({ position = "bottom" }) => {
     guests: 0,
     roomType: "",
     confirmationCode: "",
-  });
-  const [personalData, setPersonalData] = useState({
     name: "",
-    phoneNumber: "",
+    phone: "",
     email: "",
-    numberOfGuests: 0,
   });
 
   const recognitionRef = useRef(null);
   const synthesisRef = useRef(null);
   const restartTimeoutRef = useRef(null);
+  const textInputRef = useRef(null);
 
   const hotels = {
-    "addis ababa": "Addis Ababa Entoto",
-    debrezeyit: "Debrezeyit",
-    bahirdar: "Bahirdar Tana",
+    "Awash Falls": {
+      name: "Awash Falls",
+      aliases: [
+        "awash",
+        "awsh",
+        "awshf",
+        "awshfls",
+        "awshflls",
+        "awshfalls",
+        "awshfals",
+        "awshflls",
+        "awshfll",
+        "awshfl",
+        "awshf",
+        "awsh",
+        "aw",
+        "ash",
+        "wash",
+        "awshflls",
+        "awshfll",
+        "awshfl",
+        "awshf",
+        "awsh",
+        "aw",
+        "ash",
+        "wash",
+        "awshflls",
+        "awshfll",
+        "awshfl",
+        "awshf",
+        "awsh",
+        "aw",
+        "ash",
+        "wash",
+      ],
+    },
+    "Entoto National Park": {
+      name: "Entoto National Park",
+      aliases: [
+        "entoto",
+        "entt",
+        "ent",
+        "ento",
+        "entot",
+        "entotopark",
+        "entotoprk",
+        "entotopk",
+        "entotop",
+        "entoto",
+        "entt",
+        "ent",
+        "ento",
+        "entot",
+        "entotopark",
+        "entotoprk",
+        "entotopk",
+        "entotop",
+        "entoto",
+        "entt",
+        "ent",
+        "ento",
+        "entot",
+        "entotopark",
+        "entotoprk",
+        "entotopk",
+        "entotop",
+      ],
+    },
+    "Lake Kuriftu": {
+      name: "Kuriftu Lake Kuriftu",
+      aliases: [
+        "lake",
+        "lk",
+        "lke",
+        "lkkuriftu",
+        "lkkurftu",
+        "lkkurft",
+        "lkkurf",
+        "lkkur",
+        "lkk",
+        "lk",
+        "lke",
+        "lkkuriftu",
+        "lkkurftu",
+        "lkkurft",
+        "lkkurf",
+        "lkkur",
+        "lkk",
+        "lk",
+        "lke",
+        "lkkuriftu",
+        "lkkurftu",
+        "lkkurft",
+        "lkkurf",
+        "lkkur",
+        "lkk",
+      ],
+    },
+    "Lake Tana": {
+      name: "Lake Tana",
+      aliases: [
+        "tana",
+        "tna",
+        "tn",
+        "tana",
+        "tna",
+        "tn",
+        "tana",
+        "tna",
+        "tn",
+        "tana",
+        "tna",
+        "tn",
+        "tana",
+        "tna",
+        "tn",
+        "tana",
+        "tna",
+        "tn",
+        "tana",
+        "tna",
+        "tn",
+      ],
+    },
   };
 
   const roomTypes = {
     vip: "VIP Suite",
     normal: "Standard Room",
+  };
+
+  const months = {
+    january: { aliases: ["jan", "jany", "jnuar", "jnu", "janu"] },
+    february: { aliases: ["feb", "febr", "febru", "febuary", "febry"] },
+    march: { aliases: ["mar", "marc", "march", "mrh", "mrch"] },
+    april: { aliases: ["apr", "aprl", "april", "apri", "erpl", "pril"] },
+    may: { aliases: ["may", "mai", "mei", "my"] },
+    june: { aliases: ["jun", "june", "jne", "jnu"] },
+    july: { aliases: ["jul", "july", "jly", "jli"] },
+    august: { aliases: ["aug", "augu", "augst", "agst", "agust"] },
+    september: { aliases: ["sep", "sept", "septm", "septem", "septembr"] },
+    october: { aliases: ["oct", "octo", "octob", "octbr", "octber"] },
+    november: { aliases: ["nov", "novm", "novem", "novemb", "novbr"] },
+    december: { aliases: ["dec", "decm", "decem", "decemb", "decbr"] },
+  };
+
+  // Helper function to calculate string similarity
+  const calculateSimilarity = (str1, str2) => {
+    const len1 = str1.length;
+    const len2 = str2.length;
+    const matrix = [];
+
+    // Initialize matrix
+    for (let i = 0; i <= len1; i++) {
+      matrix[i] = [i];
+    }
+    for (let j = 0; j <= len2; j++) {
+      matrix[0][j] = j;
+    }
+
+    // Fill in the matrix
+    for (let i = 1; i <= len1; i++) {
+      for (let j = 1; j <= len2; j++) {
+        if (str1[i - 1] === str2[j - 1]) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1, // substitution
+            matrix[i][j - 1] + 1, // insertion
+            matrix[i - 1][j] + 1 // deletion
+          );
+        }
+      }
+    }
+
+    // Calculate similarity score
+    const maxLen = Math.max(len1, len2);
+    return 1 - matrix[len1][len2] / maxLen;
+  };
+
+  // Enhanced fuzzy matching with similarity scoring
+  const fuzzyMatch = (input, options) => {
+    const normalizedInput = input.toLowerCase().replace(/\s+/g, "");
+    let bestMatch = null;
+    let bestScore = 0;
+
+    for (const [key, value] of Object.entries(options)) {
+      // Check direct matches and aliases
+      if (
+        key.toLowerCase().includes(normalizedInput) ||
+        normalizedInput.includes(key.toLowerCase()) ||
+        (value.aliases &&
+          value.aliases.some(
+            (alias) =>
+              alias.toLowerCase().includes(normalizedInput) ||
+              normalizedInput.includes(alias.toLowerCase())
+          ))
+      ) {
+        return key;
+      }
+
+      // Calculate similarity scores
+      const keyScore = calculateSimilarity(
+        normalizedInput,
+        key.toLowerCase().replace(/\s+/g, "")
+      );
+      const aliasScores = value.aliases
+        ? value.aliases.map((alias) =>
+            calculateSimilarity(normalizedInput, alias.toLowerCase())
+          )
+        : [];
+      const maxAliasScore =
+        aliasScores.length > 0 ? Math.max(...aliasScores) : 0;
+      const totalScore = Math.max(keyScore, maxAliasScore);
+
+      if (totalScore > bestScore) {
+        bestScore = totalScore;
+        bestMatch = key;
+      }
+    }
+
+    // Return best match if similarity score is above threshold
+    return bestScore > 0.6 ? bestMatch : null;
+  };
+
+  // Enhanced date parsing
+  const parseDate = (text) => {
+    const lowerText = text.toLowerCase();
+
+    // Check for relative dates
+    if (
+      lowerText.includes("tomorrow") ||
+      lowerText.includes("tmrw") ||
+      lowerText.includes("tomo")
+    ) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return tomorrow;
+    }
+    if (lowerText.includes("today") || lowerText.includes("tonight")) {
+      return new Date();
+    }
+    if (lowerText.includes("next week")) {
+      const nextWeek = new Date();
+      nextWeek.setDate(nextWeek.getDate() + 7);
+      return nextWeek;
+    }
+
+    // Extract month and day
+    const monthMatch = fuzzyMatch(lowerText, months);
+    if (monthMatch) {
+      const dayMatch = lowerText.match(/\d{1,2}/);
+      const day = dayMatch ? parseInt(dayMatch[0]) : new Date().getDate();
+      const year = new Date().getFullYear();
+      const monthIndex = Object.keys(months).indexOf(monthMatch);
+      return new Date(year, monthIndex, day);
+    }
+
+    return null;
+  };
+
+  // Update the selectHotel function
+  const selectHotel = (text) => {
+    const matchedHotel = fuzzyMatch(text, hotels);
+    if (matchedHotel) {
+      return hotels[matchedHotel].name;
+    }
+    return null;
   };
 
   // Initialize speech recognition
@@ -61,58 +322,34 @@ const VoiceAssistant = ({ position = "bottom" }) => {
           recognitionRef.current.continuous = true;
           recognitionRef.current.interimResults = true;
           recognitionRef.current.lang = "en-US";
-          recognitionRef.current.maxAlternatives = 1;
 
           recognitionRef.current.onstart = () => {
             setError("");
             console.log("Speech recognition started");
-            setTranscript("Listening...");
           };
 
           recognitionRef.current.onresult = (event) => {
-            let interimTranscript = "";
-            let finalTranscript = "";
-
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-              const transcript = event.results[i][0].transcript;
-              if (event.results[i].isFinal) {
-                finalTranscript += transcript;
-              } else {
-                interimTranscript += transcript;
-              }
-            }
-
-            // Update transcript with both interim and final results
-            setTranscript(finalTranscript || interimTranscript);
-            console.log("Transcript:", finalTranscript || interimTranscript);
-
-            // If we have a final result, process it
-            if (finalTranscript) {
-              processTranscript(finalTranscript);
-            }
+            const transcript = Array.from(event.results)
+              .map((result) => result[0].transcript)
+              .join("");
+            setTranscript(transcript);
+            console.log("Transcript:", transcript);
           };
 
           recognitionRef.current.onerror = (event) => {
             console.error("Speech recognition error:", event.error);
-            if (event.error === "no-speech") {
-              setError("No speech detected. Please try speaking again.");
-            } else if (event.error === "audio-capture") {
-              setError(
-                "No microphone detected. Please check your microphone settings."
-              );
-            } else if (event.error === "network") {
-              setError("Network error. Please check your internet connection.");
+            if (event.error === "aborted") {
+              restartRecognition();
             } else {
               setError(`Error: ${event.error}`);
+              setIsListening(false);
             }
-            setIsListening(false);
           };
 
           recognitionRef.current.onend = () => {
             console.log("Speech recognition ended");
-            setIsListening(false);
-            if (transcript && transcript !== "Listening...") {
-              processTranscript(transcript);
+            if (isListening) {
+              restartRecognition();
             }
           };
         } catch (err) {
@@ -124,18 +361,38 @@ const VoiceAssistant = ({ position = "bottom" }) => {
       }
     };
 
+    const restartRecognition = () => {
+      if (restartTimeoutRef.current) {
+        clearTimeout(restartTimeoutRef.current);
+      }
+
+      restartTimeoutRef.current = setTimeout(() => {
+        if (isListening && recognitionRef.current) {
+          try {
+            console.log("Attempting to restart recognition");
+            recognitionRef.current.start();
+          } catch (err) {
+            console.error("Error restarting recognition:", err);
+            initializeRecognition();
+            if (isListening) {
+              recognitionRef.current.start();
+            }
+          }
+        }
+      }, 100);
+    };
+
     initializeRecognition();
 
     return () => {
+      if (restartTimeoutRef.current) {
+        clearTimeout(restartTimeoutRef.current);
+      }
       if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch (e) {
-          console.log("Error stopping recognition on cleanup:", e);
-        }
+        recognitionRef.current.stop();
       }
     };
-  }, []);
+  }, [isListening]);
 
   // Initialize speech synthesis
   useEffect(() => {
@@ -154,32 +411,27 @@ const VoiceAssistant = ({ position = "bottom" }) => {
 
     try {
       if (isListening) {
-        console.log("Stopping recognition");
         recognitionRef.current.stop();
         setIsListening(false);
-        // Process the final transcript when stopping
-        if (transcript && transcript !== "Listening...") {
+        if (transcript.trim()) {
           processTranscript(transcript);
         }
       } else {
-        console.log("Starting recognition");
-        setTranscript("Listening...");
-        setError("");
-        recognitionRef.current.start();
-        setIsListening(true);
+        // Reset recognition before starting
+        if (recognitionRef.current) {
+          recognitionRef.current.stop();
+        }
+        setTimeout(() => {
+          recognitionRef.current.start();
+          setIsListening(true);
+          setTranscript("");
+          setError("");
+        }, 100);
       }
     } catch (err) {
       console.error("Error toggling listening:", err);
       setError("Error starting/stopping speech recognition");
       setIsListening(false);
-    }
-  };
-
-  const handleFinish = () => {
-    if (isListening) {
-      toggleListening();
-    } else if (transcript && transcript !== "Listening...") {
-      processTranscript(transcript);
     }
   };
 
@@ -224,15 +476,13 @@ const VoiceAssistant = ({ position = "bottom" }) => {
           break;
 
         case "select_hotel":
-          const selectedHotel = Object.keys(hotels).find((hotel) =>
-            lowerText.includes(hotel)
-          );
+          const selectedHotel = selectHotel(lowerText);
           if (selectedHotel) {
             setReservationData((prev) => ({
               ...prev,
-              hotel: hotels[selectedHotel],
+              hotel: selectedHotel,
             }));
-            response = `Great choice! ${hotels[selectedHotel]} is a wonderful location. When would you like to check in?`;
+            response = `Great choice! ${selectedHotel} is a wonderful location. When would you like to check in? You can say a specific date like "April 15th" or "tomorrow".`;
             setConversationState("select_date");
           } else {
             response =
@@ -241,19 +491,60 @@ const VoiceAssistant = ({ position = "bottom" }) => {
           break;
 
         case "select_date":
-          if (
-            lowerText.includes("tomorrow") ||
-            lowerText.includes("today") ||
-            lowerText.match(
-              /\d{1,2}\s*(?:st|nd|rd|th)?\s*(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i
-            )
-          ) {
-            setReservationData((prev) => ({ ...prev, date: "April 12, 2024" }));
-            response = "Perfect! How many guests will be staying with you?";
+          const parsedDate = parseDate(lowerText);
+          if (parsedDate) {
+            const formattedDate = parsedDate.toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            });
+            setReservationData((prev) => ({ ...prev, date: formattedDate }));
+            response = `Perfect! I've set your check-in date for ${formattedDate}. Before we proceed, I'll need some personal information. What is your full name?`;
+            setConversationState("get_name");
+          } else {
+            response =
+              "I need to know your check-in date. You can say a specific date like 'April 15th' or 'tomorrow'. When would you like to stay?";
+          }
+          break;
+
+        case "get_name":
+          if (lowerText.trim()) {
+            setReservationData((prev) => ({ ...prev, name: text.trim() }));
+            response = "Thank you! Could you please provide your phone number?";
+            setConversationState("get_phone");
+          } else {
+            response =
+              "I need your full name to proceed with the reservation. What is your name?";
+          }
+          break;
+
+        case "get_phone":
+          // Basic phone number validation
+          const phoneMatch = lowerText.match(/(?:\+\d{1,3}[- ]?)?\d{10,}/);
+          if (phoneMatch) {
+            setReservationData((prev) => ({ ...prev, phone: phoneMatch[0] }));
+            response = "Thank you! Finally, what is your email address?";
+            setConversationState("get_email");
+          } else {
+            response =
+              "I need a valid phone number to proceed. Please provide your phone number including the country code if applicable.";
+          }
+          break;
+
+        case "get_email":
+          // Basic email validation
+          const emailMatch = lowerText.match(
+            /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/
+          );
+          if (emailMatch) {
+            setReservationData((prev) => ({ ...prev, email: emailMatch[0] }));
+            response =
+              "Thank you for providing your information. How many guests will be staying with you?";
             setConversationState("select_guests");
           } else {
             response =
-              "I need to know your check-in date. Would you like to stay tomorrow or on a specific date?";
+              "I need a valid email address to proceed. Please provide your email address.";
           }
           break;
 
@@ -310,70 +601,19 @@ const VoiceAssistant = ({ position = "bottom" }) => {
               ...prev,
               roomType: roomTypes[selectedRoom],
             }));
-            response =
-              "Great choice! Before I confirm your reservation, I need some personal information. " +
-              "Could you please tell me your full name?";
-            setConversationState("collect_name");
-          } else {
-            response =
-              "We have VIP Suite and Standard Room available. Which type would you prefer?";
-          }
-          break;
-
-        case "collect_name":
-          setPersonalData((prev) => ({ ...prev, name: text.trim() }));
-          response =
-            "Thank you, " +
-            text.trim() +
-            ". Could you please provide your phone number?";
-          setConversationState("collect_phone");
-          break;
-
-        case "collect_phone":
-          const phoneNumber = text.trim().replace(/\D/g, "");
-          if (phoneNumber.length >= 10) {
-            setPersonalData((prev) => ({ ...prev, phoneNumber }));
-            response = "Thank you. What is your email address?";
-            setConversationState("collect_email");
-          } else {
-            response =
-              "I need a valid phone number with at least 10 digits. Could you please provide it again?";
-          }
-          break;
-
-        case "collect_email":
-          const email = text.trim();
-          if (email.includes("@") && email.includes(".")) {
-            setPersonalData((prev) => ({ ...prev, email }));
-            response =
-              "Thank you. How many guests will be staying with you? Please provide just the number.";
-            setConversationState("collect_guests");
-          } else {
-            response =
-              "I need a valid email address. Could you please provide it again?";
-          }
-          break;
-
-        case "collect_guests":
-          const guestCount = lowerText.match(/\d+/);
-          if (guestCount) {
-            setPersonalData((prev) => ({
-              ...prev,
-              numberOfGuests: parseInt(guestCount[0]),
-            }));
             const confirmationCode = Math.random()
               .toString(36)
               .substring(2, 8)
               .toUpperCase();
             setReservationData((prev) => ({ ...prev, confirmationCode }));
             response =
-              `Perfect! I've reserved a ${reservationData.roomType} for you at ${reservationData.hotel} on ${reservationData.date} for ${guestCount[0]} guests. ` +
+              `Excellent choice! I've reserved a ${roomTypes[selectedRoom]} for you at ${reservationData.hotel} on ${reservationData.date} for ${reservationData.guests} guests. ` +
               `Your confirmation code is ${confirmationCode}. Please complete the payment within 24 hours to secure your reservation. ` +
               `Is there anything else I can help you with?`;
             setConversationState("confirmation");
           } else {
             response =
-              "I need the number of guests. Please provide just the number.";
+              "We have VIP Suite and Standard Room available. Which type would you prefer?";
           }
           break;
 
@@ -441,20 +681,25 @@ const VoiceAssistant = ({ position = "bottom" }) => {
     bottom: "bottom-4",
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      console.log("Enter key pressed, toggling listening");
-      toggleListening();
-    }
-  };
-
   const handleTextSubmit = (e) => {
     e.preventDefault();
     if (textInput.trim()) {
       processTranscript(textInput);
       setTextInput("");
     }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      handleTextSubmit(e);
+    }
+  };
+
+  const handleConfirmBooking = () => {
+    // Store reservation data in localStorage
+    localStorage.setItem("reservationData", JSON.stringify(reservationData));
+    // Navigate to confirmation page
+    navigate("/confirm-booking");
   };
 
   return (
@@ -501,42 +746,53 @@ const VoiceAssistant = ({ position = "bottom" }) => {
           </div>
 
           {conversationState === "confirmation" && (
-            <div className="mb-4 p-3 bg-green-50 rounded">
-              <h4 className="font-semibold mb-2">Reservation Details:</h4>
-              <div className="space-y-1 text-sm">
-                <p>
-                  <FaHotel className="inline mr-2" /> Hotel:{" "}
-                  {reservationData.hotel}
-                </p>
-                <p>
-                  <FaCalendarAlt className="inline mr-2" /> Date:{" "}
-                  {reservationData.date}
-                </p>
-                <p>
-                  <FaUsers className="inline mr-2" /> Room Type:{" "}
-                  {reservationData.roomType}
-                </p>
-                <p>
-                  <FaCreditCard className="inline mr-2" /> Confirmation Code:{" "}
-                  {reservationData.confirmationCode}
-                </p>
-                <p>
-                  <FaUser className="inline mr-2" /> Name: {personalData.name}
-                </p>
-                <p>
-                  <FaPhone className="inline mr-2" /> Phone:{" "}
-                  {personalData.phoneNumber}
-                </p>
-                <p>
-                  <FaEnvelope className="inline mr-2" /> Email:{" "}
-                  {personalData.email}
-                </p>
-                <p>
-                  <FaUsers className="inline mr-2" /> Number of Guests:{" "}
-                  {personalData.numberOfGuests}
-                </p>
+            <>
+              <div className="mb-4 p-3 bg-green-50 rounded">
+                <h4 className="font-semibold mb-2">Reservation Details:</h4>
+                <div className="space-y-1 text-sm">
+                  <p>
+                    <FaUser className="inline mr-2" /> Name:{" "}
+                    {reservationData.name}
+                  </p>
+                  <p>
+                    <FaPhone className="inline mr-2" /> Phone:{" "}
+                    {reservationData.phone}
+                  </p>
+                  <p>
+                    <FaEnvelope className="inline mr-2" /> Email:{" "}
+                    {reservationData.email}
+                  </p>
+                  <p>
+                    <FaHotel className="inline mr-2" /> Hotel:{" "}
+                    {reservationData.hotel}
+                  </p>
+                  <p>
+                    <FaCalendarAlt className="inline mr-2" /> Date:{" "}
+                    {reservationData.date}
+                  </p>
+                  <p>
+                    <FaUsers className="inline mr-2" /> Guests:{" "}
+                    {reservationData.guests}
+                  </p>
+                  <p>
+                    <FaKey className="inline mr-2" /> Room Type:{" "}
+                    {reservationData.roomType}
+                  </p>
+                  <p>
+                    <FaCreditCard className="inline mr-2" /> Confirmation Code:{" "}
+                    {reservationData.confirmationCode}
+                  </p>
+                </div>
               </div>
-            </div>
+
+              <button
+                onClick={handleConfirmBooking}
+                className="w-full mb-4 py-2 bg-green-500 text-white rounded-lg flex items-center justify-center hover:bg-green-600 transition-colors"
+              >
+                <FaCheck className="mr-2" />
+                Confirm Booking
+              </button>
+            </>
           )}
 
           <div className="flex space-x-2 mb-4">
@@ -546,8 +802,7 @@ const VoiceAssistant = ({ position = "bottom" }) => {
                 isListening
                   ? "bg-red-500 hover:bg-red-600"
                   : "bg-blue-500 hover:bg-blue-600"
-              } text-white transition-colors duration-200`}
-              type="button"
+              } text-white`}
             >
               {isListening ? (
                 <>
@@ -561,28 +816,24 @@ const VoiceAssistant = ({ position = "bottom" }) => {
                 </>
               )}
             </button>
-            <button
-              onClick={handleFinish}
-              className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded flex items-center justify-center transition-colors duration-200"
-              type="button"
-            >
-              <FaPaperPlane className="mr-2" />
-              Finish
-            </button>
           </div>
 
           <form onSubmit={handleTextSubmit} className="flex space-x-2">
-            <input
-              type="text"
-              value={textInput}
-              onChange={(e) => setTextInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type your message here or press Enter to start/stop voice..."
-              className="flex-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                value={textInput}
+                onChange={(e) => setTextInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Type your message..."
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                ref={textInputRef}
+              />
+            </div>
             <button
               type="submit"
-              className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition-colors duration-200"
+              className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors"
+              disabled={!textInput.trim()}
             >
               <FaPaperPlane />
             </button>
@@ -591,7 +842,7 @@ const VoiceAssistant = ({ position = "bottom" }) => {
       ) : (
         <button
           onClick={() => setShowAssistant(true)}
-          className="bg-blue-500 text-white p-3 rounded-full shadow-lg hover:bg-blue-600 transition-colors duration-200"
+          className="bg-blue-500 text-white p-3 rounded-full shadow-lg hover:bg-blue-600 transition-colors"
         >
           <FaRobot className="text-2xl" />
         </button>

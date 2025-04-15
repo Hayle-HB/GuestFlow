@@ -13,6 +13,8 @@ import Availability from "./pages/LandingPage/Booking/components/Availablity";
 import UserWeb from "./MainApplication/USER_WEB/UserWeb";
 import AdminWeb from "./MainApplication/ADMIN_WEB/adminWeb";
 import VoiceAssistant from "./voiceAssistant/voiceAssistant";
+import BookConf from "./components/BookingConfirmation/BookConf";
+
 const ProtectedRoute = ({ children, isAdmin = false }) => {
   const token = localStorage.getItem("token");
   const userRole = localStorage.getItem("userRole");
@@ -57,6 +59,7 @@ const App = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/book-now" element={<Booking />} />
         <Route path="/availability" element={<Availability />} />
+        <Route path="/confirm-booking" element={<BookConf />} />
 
         {/* Protected User Routes */}
         <Route
