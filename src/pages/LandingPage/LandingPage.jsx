@@ -5,7 +5,7 @@ import CTASection from "./components/CTASection";
 import Booking from "./Booking/Booking";
 import Footer from "./Footer/Footer";
 import NavBar from "../../components/layout/Navigation/NavBar";
-import LoginOverlay from "./components/LoginOverlay";
+// import LoginOverlay from "./components/LoginOverlay";
 
 const LandingPage = () => {
   return (
@@ -15,7 +15,7 @@ const LandingPage = () => {
       <FeaturesSection />
       <CTASection />
       <Footer />
-      <LoginOverlay />
+      {/* <LoginOverlay /> */}
     </div>
   );
 };

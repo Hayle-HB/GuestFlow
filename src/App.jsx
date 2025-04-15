@@ -6,14 +6,13 @@ import {
   useNavigate,
   useLocation,
 } from "react-router-dom";
-import NavBar from "./components/layout/Navigation/NavBar";
 import LandingPage from "./pages/LandingPage/LandingPage";
 import LoginPage from "./pages/auth/Login/LoginPage";
 import Booking from "./pages/LandingPage/Booking/Booking";
 import Availability from "./pages/LandingPage/Booking/components/Availablity";
 import UserWeb from "./MainApplication/USER_WEB/UserWeb";
 import AdminWeb from "./MainApplication/ADMIN_WEB/adminWeb";
-
+import VoiceAssistant from "./voiceAssistant/voiceAssistant";
 const ProtectedRoute = ({ children, isAdmin = false }) => {
   const token = localStorage.getItem("token");
   const userRole = localStorage.getItem("userRole");
@@ -82,6 +81,7 @@ const App = () => {
         {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <VoiceAssistant />
     </div>
   );
 };
