@@ -33,9 +33,9 @@ const VoiceAssistant = ({ position = "bottom" }) => {
   const restartTimeoutRef = useRef(null);
 
   const hotels = {
-    "addis ababa": "Kuriftu Addis Ababa Entoto",
-    debrezeyit: "Kuriftu Debrezeyit",
-    bahirdar: "Kuriftu Bahirdar TanaHayik",
+    "addis ababa": "Addis Ababa Entoto",
+    debrezeyit: "Debrezeyit",
+    bahirdar: "Bahirdar Tana",
   };
 
   const roomTypes = {
@@ -372,6 +372,19 @@ const VoiceAssistant = ({ position = "bottom" }) => {
     bottom: "bottom-4",
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (isListening) {
+        // Stop listening and process the transcript
+        toggleListening();
+      } else {
+        // Start listening
+        toggleListening();
+      }
+    }
+  };
+
   const handleTextSubmit = (e) => {
     e.preventDefault();
     if (textInput.trim()) {
@@ -463,12 +476,12 @@ const VoiceAssistant = ({ position = "bottom" }) => {
               {isListening ? (
                 <>
                   <FaMicrophoneSlash className="mr-2" />
-                  Stop Listening
+                  Speaking
                 </>
               ) : (
                 <>
                   <FaMicrophone className="mr-2" />
-                  Start Listening
+                  Listening
                 </>
               )}
             </button>
@@ -479,7 +492,8 @@ const VoiceAssistant = ({ position = "bottom" }) => {
               type="text"
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
-              placeholder="Type your message here..."
+              onKeyDown={handleKeyDown}
+              placeholder="Type your message here or press Enter to start/stop voice..."
               className="flex-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button
