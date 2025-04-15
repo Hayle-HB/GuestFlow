@@ -9,6 +9,9 @@ import {
   FaKey,
   FaCreditCard,
   FaPaperPlane,
+  FaUser,
+  FaPhone,
+  FaEnvelope,
 } from "react-icons/fa";
 
 const VoiceAssistant = ({ position = "bottom" }) => {
@@ -26,6 +29,12 @@ const VoiceAssistant = ({ position = "bottom" }) => {
     guests: 0,
     roomType: "",
     confirmationCode: "",
+  });
+  const [personalData, setPersonalData] = useState({
+    name: "",
+    phoneNumber: "",
+    email: "",
+    numberOfGuests: 0,
   });
 
   const recognitionRef = useRef(null);
@@ -52,34 +61,58 @@ const VoiceAssistant = ({ position = "bottom" }) => {
           recognitionRef.current.continuous = true;
           recognitionRef.current.interimResults = true;
           recognitionRef.current.lang = "en-US";
+          recognitionRef.current.maxAlternatives = 1;
 
           recognitionRef.current.onstart = () => {
             setError("");
             console.log("Speech recognition started");
+            setTranscript("Listening...");
           };
 
           recognitionRef.current.onresult = (event) => {
-            const transcript = Array.from(event.results)
-              .map((result) => result[0].transcript)
-              .join("");
-            setTranscript(transcript);
-            console.log("Transcript:", transcript);
+            let interimTranscript = "";
+            let finalTranscript = "";
+
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+              const transcript = event.results[i][0].transcript;
+              if (event.results[i].isFinal) {
+                finalTranscript += transcript;
+              } else {
+                interimTranscript += transcript;
+              }
+            }
+
+            // Update transcript with both interim and final results
+            setTranscript(finalTranscript || interimTranscript);
+            console.log("Transcript:", finalTranscript || interimTranscript);
+
+            // If we have a final result, process it
+            if (finalTranscript) {
+              processTranscript(finalTranscript);
+            }
           };
 
           recognitionRef.current.onerror = (event) => {
             console.error("Speech recognition error:", event.error);
-            if (event.error === "aborted") {
-              restartRecognition();
+            if (event.error === "no-speech") {
+              setError("No speech detected. Please try speaking again.");
+            } else if (event.error === "audio-capture") {
+              setError(
+                "No microphone detected. Please check your microphone settings."
+              );
+            } else if (event.error === "network") {
+              setError("Network error. Please check your internet connection.");
             } else {
               setError(`Error: ${event.error}`);
-              setIsListening(false);
             }
+            setIsListening(false);
           };
 
           recognitionRef.current.onend = () => {
             console.log("Speech recognition ended");
-            if (isListening) {
-              restartRecognition();
+            setIsListening(false);
+            if (transcript && transcript !== "Listening...") {
+              processTranscript(transcript);
             }
           };
         } catch (err) {
@@ -91,38 +124,18 @@ const VoiceAssistant = ({ position = "bottom" }) => {
       }
     };
 
-    const restartRecognition = () => {
-      if (restartTimeoutRef.current) {
-        clearTimeout(restartTimeoutRef.current);
-      }
-
-      restartTimeoutRef.current = setTimeout(() => {
-        if (isListening && recognitionRef.current) {
-          try {
-            console.log("Attempting to restart recognition");
-            recognitionRef.current.start();
-          } catch (err) {
-            console.error("Error restarting recognition:", err);
-            initializeRecognition();
-            if (isListening) {
-              recognitionRef.current.start();
-            }
-          }
-        }
-      }, 100);
-    };
-
     initializeRecognition();
 
     return () => {
-      if (restartTimeoutRef.current) {
-        clearTimeout(restartTimeoutRef.current);
-      }
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          console.log("Error stopping recognition on cleanup:", e);
+        }
       }
     };
-  }, [isListening]);
+  }, []);
 
   // Initialize speech synthesis
   useEffect(() => {
@@ -141,27 +154,32 @@ const VoiceAssistant = ({ position = "bottom" }) => {
 
     try {
       if (isListening) {
+        console.log("Stopping recognition");
         recognitionRef.current.stop();
         setIsListening(false);
-        if (transcript.trim()) {
+        // Process the final transcript when stopping
+        if (transcript && transcript !== "Listening...") {
           processTranscript(transcript);
         }
       } else {
-        // Reset recognition before starting
-        if (recognitionRef.current) {
-          recognitionRef.current.stop();
-        }
-        setTimeout(() => {
-          recognitionRef.current.start();
-          setIsListening(true);
-          setTranscript("");
-          setError("");
-        }, 100);
+        console.log("Starting recognition");
+        setTranscript("Listening...");
+        setError("");
+        recognitionRef.current.start();
+        setIsListening(true);
       }
     } catch (err) {
       console.error("Error toggling listening:", err);
       setError("Error starting/stopping speech recognition");
       setIsListening(false);
+    }
+  };
+
+  const handleFinish = () => {
+    if (isListening) {
+      toggleListening();
+    } else if (transcript && transcript !== "Listening...") {
+      processTranscript(transcript);
     }
   };
 
@@ -292,19 +310,70 @@ const VoiceAssistant = ({ position = "bottom" }) => {
               ...prev,
               roomType: roomTypes[selectedRoom],
             }));
+            response =
+              "Great choice! Before I confirm your reservation, I need some personal information. " +
+              "Could you please tell me your full name?";
+            setConversationState("collect_name");
+          } else {
+            response =
+              "We have VIP Suite and Standard Room available. Which type would you prefer?";
+          }
+          break;
+
+        case "collect_name":
+          setPersonalData((prev) => ({ ...prev, name: text.trim() }));
+          response =
+            "Thank you, " +
+            text.trim() +
+            ". Could you please provide your phone number?";
+          setConversationState("collect_phone");
+          break;
+
+        case "collect_phone":
+          const phoneNumber = text.trim().replace(/\D/g, "");
+          if (phoneNumber.length >= 10) {
+            setPersonalData((prev) => ({ ...prev, phoneNumber }));
+            response = "Thank you. What is your email address?";
+            setConversationState("collect_email");
+          } else {
+            response =
+              "I need a valid phone number with at least 10 digits. Could you please provide it again?";
+          }
+          break;
+
+        case "collect_email":
+          const email = text.trim();
+          if (email.includes("@") && email.includes(".")) {
+            setPersonalData((prev) => ({ ...prev, email }));
+            response =
+              "Thank you. How many guests will be staying with you? Please provide just the number.";
+            setConversationState("collect_guests");
+          } else {
+            response =
+              "I need a valid email address. Could you please provide it again?";
+          }
+          break;
+
+        case "collect_guests":
+          const guestCount = lowerText.match(/\d+/);
+          if (guestCount) {
+            setPersonalData((prev) => ({
+              ...prev,
+              numberOfGuests: parseInt(guestCount[0]),
+            }));
             const confirmationCode = Math.random()
               .toString(36)
               .substring(2, 8)
               .toUpperCase();
             setReservationData((prev) => ({ ...prev, confirmationCode }));
             response =
-              `Excellent choice! I've reserved a ${roomTypes[selectedRoom]} for you at ${reservationData.hotel} on ${reservationData.date} for ${reservationData.guests} guests. ` +
+              `Perfect! I've reserved a ${reservationData.roomType} for you at ${reservationData.hotel} on ${reservationData.date} for ${guestCount[0]} guests. ` +
               `Your confirmation code is ${confirmationCode}. Please complete the payment within 24 hours to secure your reservation. ` +
               `Is there anything else I can help you with?`;
             setConversationState("confirmation");
           } else {
             response =
-              "We have VIP Suite and Standard Room available. Which type would you prefer?";
+              "I need the number of guests. Please provide just the number.";
           }
           break;
 
@@ -375,13 +444,8 @@ const VoiceAssistant = ({ position = "bottom" }) => {
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (isListening) {
-        // Stop listening and process the transcript
-        toggleListening();
-      } else {
-        // Start listening
-        toggleListening();
-      }
+      console.log("Enter key pressed, toggling listening");
+      toggleListening();
     }
   };
 
@@ -449,16 +513,27 @@ const VoiceAssistant = ({ position = "bottom" }) => {
                   {reservationData.date}
                 </p>
                 <p>
-                  <FaUsers className="inline mr-2" /> Guests:{" "}
-                  {reservationData.guests}
-                </p>
-                <p>
-                  <FaKey className="inline mr-2" /> Room Type:{" "}
+                  <FaUsers className="inline mr-2" /> Room Type:{" "}
                   {reservationData.roomType}
                 </p>
                 <p>
                   <FaCreditCard className="inline mr-2" /> Confirmation Code:{" "}
                   {reservationData.confirmationCode}
+                </p>
+                <p>
+                  <FaUser className="inline mr-2" /> Name: {personalData.name}
+                </p>
+                <p>
+                  <FaPhone className="inline mr-2" /> Phone:{" "}
+                  {personalData.phoneNumber}
+                </p>
+                <p>
+                  <FaEnvelope className="inline mr-2" /> Email:{" "}
+                  {personalData.email}
+                </p>
+                <p>
+                  <FaUsers className="inline mr-2" /> Number of Guests:{" "}
+                  {personalData.numberOfGuests}
                 </p>
               </div>
             </div>
@@ -471,19 +546,28 @@ const VoiceAssistant = ({ position = "bottom" }) => {
                 isListening
                   ? "bg-red-500 hover:bg-red-600"
                   : "bg-blue-500 hover:bg-blue-600"
-              } text-white`}
+              } text-white transition-colors duration-200`}
+              type="button"
             >
               {isListening ? (
                 <>
                   <FaMicrophoneSlash className="mr-2" />
-                  Speaking
+                  Stop Listening
                 </>
               ) : (
                 <>
                   <FaMicrophone className="mr-2" />
-                  Listening
+                  Start Listening
                 </>
               )}
+            </button>
+            <button
+              onClick={handleFinish}
+              className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded flex items-center justify-center transition-colors duration-200"
+              type="button"
+            >
+              <FaPaperPlane className="mr-2" />
+              Finish
             </button>
           </div>
 
@@ -498,7 +582,7 @@ const VoiceAssistant = ({ position = "bottom" }) => {
             />
             <button
               type="submit"
-              className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+              className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition-colors duration-200"
             >
               <FaPaperPlane />
             </button>
@@ -507,7 +591,7 @@ const VoiceAssistant = ({ position = "bottom" }) => {
       ) : (
         <button
           onClick={() => setShowAssistant(true)}
-          className="bg-blue-500 text-white p-3 rounded-full shadow-lg hover:bg-blue-600 transition-colors"
+          className="bg-blue-500 text-white p-3 rounded-full shadow-lg hover:bg-blue-600 transition-colors duration-200"
         >
           <FaRobot className="text-2xl" />
         </button>
